@@ -284,11 +284,11 @@ func (ic *invocationContext) GetActorCodeCID(a address.Address) (cid.Cid, bool) 
 }
 
 func (ic *invocationContext) GetRandomnessFromBeacon(_ crypto.DomainSeparationTag, _ abi.ChainEpoch, _ []byte) abi.Randomness {
-	return []byte("not really random")
+	return []byte("i_am_random_____i_am_random_____")
 }
 
 func (ic *invocationContext) GetRandomnessFromTickets(_ crypto.DomainSeparationTag, _ abi.ChainEpoch, _ []byte) abi.Randomness {
-	return []byte("not really random")
+	return []byte("i_am_random_____i_am_random_____")
 }
 
 func (ic *invocationContext) ValidateImmediateCallerAcceptAny() {

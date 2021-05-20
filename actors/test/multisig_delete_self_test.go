@@ -64,7 +64,8 @@ func TestMultisigDeleteSelf2Of3RemovedIsProposer(t *testing.T) {
 	vm.ApplyOk(t, v, addrs[1], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams)
 
 	// txnid not found when third approval gets processed indicating that the transaction has gone through successfully
-	result := v.ApplyMessage(addrs[2], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams)
+	result, err := v.ApplyMessage(addrs[2], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams, t.Name())
+	require.NoError(t, err)
 	assert.Equal(t, exitcode.ErrNotFound, result.Code)
 
 }
@@ -115,7 +116,8 @@ func TestMultisigDeleteSelf2Of3RemovedIsApprover(t *testing.T) {
 	vm.ApplyOk(t, v, addrs[0], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams)
 
 	// txnid not found when third approval gets processed indicating that the transaction has gone through successfully
-	result := v.ApplyMessage(addrs[2], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams)
+	result, err := v.ApplyMessage(addrs[2], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams, t.Name())
+	require.NoError(t, err)
 	assert.Equal(t, exitcode.ErrNotFound, result.Code)
 
 }
@@ -165,7 +167,8 @@ func TestMultisigDeleteSelf2Of2(t *testing.T) {
 	vm.ApplyOk(t, v, addrs[1], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams)
 
 	// txnid not found when another approval gets processed indicating that the transaction has gone through successfully
-	result := v.ApplyMessage(addrs[1], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams)
+	result, err := v.ApplyMessage(addrs[1], multisigAddr, big.Zero(), builtin.MethodsMultisig.Approve, &approveRemoveSignerParams, t.Name())
+	require.NoError(t, err)
 	assert.Equal(t, exitcode.ErrNotFound, result.Code)
 }
 

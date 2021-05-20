@@ -340,8 +340,41 @@ type MessageResult struct {
 	GasCharged int64
 }
 
+func (vm *VM) ApplyMessage(from, to address.Address, value abi.TokenAmount, method abi.MethodNum, params interface{}, info string) (MessageResult, error) {
+	var result MessageResult
+	var callSeq uint64
+	var tv TestVector
+	if true { // Todo check env variable for vector generation condition
+		// Set test vector pre application conditions
+		startOpts := StartConditions(vm, info)
+		for _, opt := range startOpts {
+			if err := opt(&tv); err != nil {
+				return MessageResult{}, err
+			}
+		}
+
+	}
+
+	result, callSeq = vm.applyMessageInternal(from, to, value, method, params)
+	if true { // TODO check env variable for vector generation condition and for output path
+		// Set test vector message and post application conditions
+		if err := SetMessage(from, to, callSeq, value, method, params)(&tv); err != nil {
+			return MessageResult{}, err
+		}
+		if err := SetEndStateTree(vm.StateRoot())(&tv); err != nil {
+			return MessageResult{}, err
+		}
+		if err := SetReceipt(result)(&tv); err != nil {
+			return MessageResult{}, err
+		}
+		// TODO serialize test vector, name target file, write to it
+
+	}
+	return result, nil
+}
+
 // ApplyMessage applies the message to the current state.
-func (vm *VM) ApplyMessage(from, to address.Address, value abi.TokenAmount, method abi.MethodNum, params interface{}) MessageResult {
+func (vm *VM) applyMessageInternal(from, to address.Address, value abi.TokenAmount, method abi.MethodNum, params interface{}) (MessageResult, uint64) {
 	// This method does not actually execute the message itself,
 	// but rather deals with the pre/post processing of a message.
 	// (see: `invocationContext.invoke()` for the dispatch and execution)
@@ -350,7 +383,7 @@ func (vm *VM) ApplyMessage(from, to address.Address, value abi.TokenAmount, meth
 	// load actor from global state
 	fromID, ok := vm.NormalizeAddress(from)
 	if !ok {
-		return MessageResult{nil, exitcode.SysErrSenderInvalid, gasCharged}
+		return MessageResult{nil, exitcode.SysErrSenderInvalid, gasCharged}, 0
 	}
 
 	fromActor, found, err := vm.GetActor(fromID)
@@ -359,7 +392,7 @@ func (vm *VM) ApplyMessage(from, to address.Address, value abi.TokenAmount, meth
 	}
 	if !found {
 		// Execution error; sender does not exist at time of message execution.
-		return MessageResult{nil, exitcode.SysErrSenderInvalid, gasCharged}
+		return MessageResult{nil, exitcode.SysErrSenderInvalid, gasCharged}, 0
 	}
 
 	// checkpoint state
@@ -448,7 +481,7 @@ func (vm *VM) ApplyMessage(from, to address.Address, value abi.TokenAmount, meth
 	retGasCharge := vm.gasPrices.OnChainReturnValue(len(retBuf.Bytes()))
 	gasCharged = retGasCharge.Total() + ctx.topLevel.gasUsed
 
-	return MessageResult{ret.inner, exitCode, gasCharged}
+	return MessageResult{ret.inner, exitCode, gasCharged}, callSeq
 }
 
 func (vm *VM) StateRoot() cid.Cid {
